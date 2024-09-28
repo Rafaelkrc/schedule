@@ -3,7 +3,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from contact.models import Contact
-from contact.forms import ContactForm
+from contact.forms import ContactForm, RegisterForm
+
 
 
 def index(request):
@@ -141,3 +142,15 @@ def delete(request, contact_id):
             'confirmation': confirmation
         }
     )
+
+
+def register(request):
+    form = RegisterForm()
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+    return render(request, 'contact/user_create.html', {'form': form})
