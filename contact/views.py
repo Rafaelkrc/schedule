@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -152,5 +153,7 @@ def register(request):
 
         if form.is_valid():
             form.save()
+            messages.success(request, 'Usuário registrado com sucesso!')
+            return redirect('contact:index')
 
     return render(request, 'contact/user_create.html', {'form': form})
