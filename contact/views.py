@@ -5,8 +5,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from contact.models import Contact
-from contact.forms import ContactForm, RegisterForm
-
+from contact.forms import ContactForm, RegisterForm, RegisterUpdateForm
 
 
 def index(request):
@@ -159,6 +158,21 @@ def register(request):
 
     return render(request, 'contact/user_create.html', {'form': form})
 
+
+def user_update(request):
+    form = RegisterUpdateForm(instance=request.user)
+
+    if request.method != 'POST':
+        return render(request, 'contact/user_update.html', {'form': form})
+
+    form = RegisterUpdateForm(request.POST, instance=request.user)
+
+    if not form.is_valid():
+        return render(request, 'contact/user_update.html', {'form': form})
+    form.save()
+    return redirect('contact:user_update')
+
+
 def login_view(request):
     form = AuthenticationForm(request)
 
@@ -171,7 +185,7 @@ def login_view(request):
             messages.success(request, 'Logado com sucesso!')
             return redirect('contact:index')
         messages.error(request, 'Login inválido!')
-    
+
     return render(request, 'contact/login.html', {'form': form})
 
 
