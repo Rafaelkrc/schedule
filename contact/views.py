@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 from django.contrib import auth, messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -49,6 +50,7 @@ def search(request):
     )
 
 
+@login_required(login_url='contact:login')
 def contactdetail(request, contact_id):
     single_contact = get_object_or_404(Contact, pk=contact_id)
     site_title = f'{single_contact.first_name} {single_contact.last_name} - '
@@ -59,6 +61,7 @@ def contactdetail(request, contact_id):
     return render(request, 'contact/contact.html', context)
 
 
+@login_required(login_url='contact:login')
 def create(request):
     form_action = reverse('contact:create')
 
@@ -71,7 +74,9 @@ def create(request):
         }
 
         if form.is_valid():
-            contact = form.save()
+            contact = form.save(commit=False)
+            contact.owner = request.user
+            contact.save()
             return redirect('contact:update', contact_id=contact.pk)
 
         return render(
@@ -92,8 +97,9 @@ def create(request):
     )
 
 
+@login_required(login_url='contact:login')
 def update(request, contact_id):
-    contact = get_object_or_404(Contact, pk=contact_id)
+    contact = get_object_or_404(Contact, pk=contact_id, owner=request.user)
     form_action = reverse('contact:update', args=(contact_id,))
 
     if request.method == 'POST':
@@ -126,8 +132,9 @@ def update(request, contact_id):
     )
 
 
+@login_required(login_url='contact:login')
 def delete(request, contact_id):
-    contact = get_object_or_404(Contact, pk=contact_id)
+    contact = get_object_or_404(Contact, pk=contact_id, owner=request.user)
 
     confirmation = request.POST.get('confirmation', 'no')
 
@@ -159,6 +166,7 @@ def register(request):
     return render(request, 'contact/user_create.html', {'form': form})
 
 
+@login_required(login_url='contact:login')
 def user_update(request):
     form = RegisterUpdateForm(instance=request.user)
 
@@ -189,6 +197,7 @@ def login_view(request):
     return render(request, 'contact/login.html', {'form': form})
 
 
+@login_required(login_url='contact:login')
 def logout_view(request):
     auth.logout(request)
     return redirect('contact:login')
